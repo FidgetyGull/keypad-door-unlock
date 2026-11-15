@@ -50,7 +50,7 @@ void onPinEntered(const char *entered) {
   if (millis() < lockoutUntil) return;
 
   if (checkPin(entered)) {
-    failures = failures = 0;
+    failures = 0;
     // BEGIN DOOR UNLOCK FUNCTION
   }
   // 3 failues to lockout, change as necessary
