@@ -2,11 +2,8 @@
 #include <Preferences.h>
 #include <Keypad.h>
 #include <DIYables_LCD_I2C.h>
-#include <mbedtls/sha256.h>
+#include "door_auth.h"
 #include <string.h>
-
-// Module to store hashed password/pin across restarts
-Preferences prefs;
 
 // Keypad module and initial setup
 const byte ROWS = 4; //four rows
@@ -34,36 +31,6 @@ Keypad kpd = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 DIYables_LCD_I2C lcd(0x27, 20, 4);
 
 
-void hashPin(const char *pin, const uint8_t salt[16], uint8_t out[32]) {
-  mbedtls_sha256_context ctx;
-  mbedtls_sha256_init(&ctx);
-  mbedtls_sha256_starts(&ctx, 0);
-  mbedtls_sha256_update(&ctx, salt, 16);
-  mbedtls_sha256_update(&ctx, (const uint8_t *)pin, strlen(pin));
-  mbedtls_sha256_finish(&ctx, out);
-  mbedtls_sha256_free(&ctx);
-}
-
-bool hashesMatch(const uint8_t *a, const uint8_t *b) {
-  // TODO: Constant-time compare
-}
-
-// setPin is called once plaint-text in setup() to store pin in permanent memory. Remove after setup.
-void setPin(const char *pin) {
-  uint8_t salt[16], hash[32];
-  // TODO: set pin
-}
-
-bool checkPin(const char *entered) {
-  uint8_t salt[16], stored[32], computed[32];
-  prefs.begin("door", true);
-  prefs.getBytes("salt", salt, 16);
-  prefs.getBytes("hash", stored, 32);
-  prefs.end();
-  hashPin(entered, salt, computed);
-  return hashesMatch(computed, stored);
-}
-
 // Static variables to store number of pin failures
 static int failures = 0;
 static unsigned long lockoutUntil = 0;
@@ -89,6 +56,8 @@ void onPinEntered(const char *entered) {
 void setup() {
   // Begin serial monitoring (comment out for permanent install)
   Serial.begin(9600);
+
+  // setPin("1234");  // run once, flash, then remove
 }
 
 void loop() {
