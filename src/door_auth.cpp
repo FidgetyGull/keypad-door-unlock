@@ -41,22 +41,3 @@ bool checkPin(const char *entered) {
   hashPin(entered, salt, computed);
   return hashesMatch(computed, stored);
 }
-
-// Static variables to store number of pin failures
-static int failures = 0;
-static unsigned long lockoutUntil = 0;
-
-void onPinEntered(const char *entered) {
-  if (millis() < lockoutUntil) return;
-
-  if (checkPin(entered)) {
-    failures = 0;
-    // BEGIN DOOR UNLOCK FUNCTION
-  }
-  // 3 failues to lockout, change as necessary
-  else if (++failures >= 3) {
-    // 30,000 ms = 30 seconds, change as necessary
-    lockoutUntil = millis() + 30000; 
-    failures = 0;
-  }
-}
