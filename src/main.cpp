@@ -31,6 +31,12 @@ Keypad kpd = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 DIYables_LCD_I2C lcd(0x27, 20, 4);
 
 
+// Door unlock control
+void unlock() {
+  // TODO: Implement door unlock
+}
+
+
 // Static variables to store number of pin failures
 static int failures = 0;
 static unsigned long lockoutUntil = 0;
@@ -41,6 +47,7 @@ void onPinEntered(const char *entered) {
   if (checkPin(entered)) {
     failures = 0;
     // BEGIN DOOR UNLOCK FUNCTION
+    unlock();
   }
   // 3 failues to lockout, change as necessary
   else if (++failures >= 3) {
@@ -50,17 +57,37 @@ void onPinEntered(const char *entered) {
   }
 }
 
-
-
+// PIN entry setup
+const uint8_t MAX_LEN = 8; // Set max password length
+char buffer[MAX_LEN + 1]; // max password input + terminator
+uint8_t len = 0; // current password length
+void clearBuffer() {
+  memset(buffer, 0, MAX_LEN); // Clears buffer
+  len = 0;
+}
 
 void setup() {
   // Begin serial monitoring (comment out for permanent install)
   Serial.begin(9600);
 
+
   // setPin("1234");  // run once, flash, then remove
 }
 
 void loop() {
-  // Get keypad key continuously
-  char key = kpd.getKey();
+
+  // Keypad reading
+  char key = kpd.getKey(); // Get keypad key continuously
+  if (key) {
+    Serial.println(key); // Comment out if no serial monitoring
+    if (key == '*') {
+      clearBuffer();
+    } else if (key == '#') {
+      buffer[len] = '\0';
+      onPinEntered(buffer);
+      clearBuffer();
+    } else if (len < MAX_LEN) {
+      buffer[len++] = key;
+    }
+  }
 }
