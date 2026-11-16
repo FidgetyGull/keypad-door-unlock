@@ -4,6 +4,7 @@
 #include <DIYables_LCD_I2C.h>
 #include "door_auth.h"
 #include <string.h>
+#include "display.h"
 
 // Keypad module and initial setup
 const byte ROWS = 4; //four rows
@@ -24,13 +25,6 @@ byte rowPins[ROWS] = {5, 4, 3, 2}; //connect to the row pinouts of the kpd
 byte colPins[COLS] = {8, 7, 6}; //connect to the column pinouts of the kpd
 Keypad kpd = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
-
-
-// I2C LCD Setup
-// Change LCD I2C address according to manufacture
-DIYables_LCD_I2C lcd(0x27, 20, 4);
-
-
 // Door unlock control
 void unlock() {
   // TODO: Implement door unlock
@@ -42,7 +36,10 @@ static int failures = 0;
 static unsigned long lockoutUntil = 0;
 
 void onPinEntered(const char *entered) {
-  if (millis() < lockoutUntil) return;
+  if (millis() < lockoutUntil) {
+    printLockout();
+    return;
+  }
 
   if (checkPin(entered)) {
     failures = 0;
@@ -79,7 +76,7 @@ void loop() {
   // Keypad reading
   char key = kpd.getKey(); // Get keypad key continuously
   if (key) {
-    Serial.println(key); // Comment out if no serial monitoring
+    Serial.println(key); // Comment out if no serial monitoring necessary
     if (key == '*') {
       clearBuffer();
     } else if (key == '#') {
