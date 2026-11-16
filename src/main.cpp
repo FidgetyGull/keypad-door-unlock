@@ -3,7 +3,6 @@
 #include <Keypad.h>
 #include <DIYables_LCD_I2C.h>
 #include "door_auth.h"
-#include <string.h>
 #include "display.h"
 
 // Keypad module and initial setup
