@@ -107,9 +107,12 @@ void setup() {
 }
 
 void loop() {
-  // Keypad reading
   char key = kpd.getKey(); // Get keypad key continuously
   if (key) {
-    handleKey(key);
+    bool wasAsleep = !backlightOn;
+    if (!wasAsleep) {
+      handleKey(key);
+    }
   }
+  checkIdle();
 }
