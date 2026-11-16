@@ -75,6 +75,19 @@ void checkIdle() {
   }
 }
 
+void handleKey(char key) {
+  Serial.println(key); // Comment out if no serial monitoring necessary
+  if (key == '*') {
+    clearBuffer();
+  } else if (key == '#') {
+    buffer[len] = '\0';
+    onPinEntered(buffer);
+    clearBuffer();
+  } else if (len < MAX_LEN) {
+    buffer[len++] = key;
+  }
+}
+
 
 // PIN entry setup
 const uint8_t MAX_LEN = 8; // Set max password length
@@ -97,15 +110,6 @@ void loop() {
   // Keypad reading
   char key = kpd.getKey(); // Get keypad key continuously
   if (key) {
-    Serial.println(key); // Comment out if no serial monitoring necessary
-    if (key == '*') {
-      clearBuffer();
-    } else if (key == '#') {
-      buffer[len] = '\0';
-      onPinEntered(buffer);
-      clearBuffer();
-    } else if (len < MAX_LEN) {
-      buffer[len++] = key;
-    }
+    handleKey(key);
   }
 }
