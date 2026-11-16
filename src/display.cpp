@@ -7,7 +7,7 @@
 DIYables_LCD_I2C lcd(0x27, 20, 4);
 
 // LCD DISPLAY LAYOUT (template) for 20x4
-/*   12345678901234567890
+/*   01234567890123456789
     +--------------------+
     |  Welcome to 341!
     |Enter PIN:
@@ -16,11 +16,16 @@ DIYables_LCD_I2C lcd(0x27, 20, 4);
     +--------------------+
 */
 
+// lcd.setCursor(col, row); indexes start at 0
+
 void initDisplay() {
     lcd.init();
     lcd.backlight();
     lcd.clear();
     lcd.noCursor();
+
+    lcd.setCursor(0,2);
+    lcd.print("Welcome to 341!");
 }
 
 void printMessage(const String& message) {
@@ -32,6 +37,6 @@ void printMessage(const String& message) {
 // Print locked out message. TODO: Maybe change message?
 void printLockout() {
     lcd.clearRow(2);
-    lcd.setCursor(0, 2);
+    lcd.setCursor(2,0);
     lcd.print("Please wait");
 }

@@ -53,6 +53,29 @@ void onPinEntered(const char *entered) {
   }
 }
 
+
+// Keypad handling function (idle timer)
+const unsigned long IDLE_TIMEOUT = 10000; // 10 second idle timeout
+unsigned long lastActivity = 0;
+bool backlightOn = true;
+
+void wakeBacklight() {
+  lastActivity = millis();
+  if (!backlightOn) {
+    lcd.backlight();
+    backlightOn = true;
+  }
+}
+
+void checkIdle() {
+  if (backlightOn && (millis() - lastActivity >= IDLE_TIMEOUT)) {
+    lcd.noBacklight();
+    backlightOn = false;
+    clearBuffer(); // Clears any entered pin when idle
+  }
+}
+
+
 // PIN entry setup
 const uint8_t MAX_LEN = 8; // Set max password length
 char buffer[MAX_LEN + 1]; // max password input + terminator
@@ -65,13 +88,12 @@ void clearBuffer() {
 void setup() {
   // Begin serial monitoring (comment out for permanent install)
   Serial.begin(9600);
-
-
   // setPin("1234");  // run once, flash, then remove
+
+  initDisplay();
 }
 
 void loop() {
-
   // Keypad reading
   char key = kpd.getKey(); // Get keypad key continuously
   if (key) {
