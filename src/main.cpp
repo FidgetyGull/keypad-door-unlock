@@ -53,8 +53,16 @@ void onPinEntered(const char *entered) {
   }
 }
 
+// PIN entry setup
+const uint8_t MAX_LEN = 8; // Set max password length
+char buffer[MAX_LEN + 1]; // max password input + terminator
+uint8_t len = 0; // current password length
+void clearBuffer() {
+  memset(buffer, 0, MAX_LEN); // Clears buffer
+  len = 0;
+}
 
-// Keypad handling function (idle timer)
+// Keypad handling functions with idle timer
 const unsigned long IDLE_TIMEOUT = 10000; // 10 second idle timeout
 unsigned long lastActivity = 0;
 bool backlightOn = true;
@@ -88,15 +96,6 @@ void handleKey(char key) {
   }
 }
 
-
-// PIN entry setup
-const uint8_t MAX_LEN = 8; // Set max password length
-char buffer[MAX_LEN + 1]; // max password input + terminator
-uint8_t len = 0; // current password length
-void clearBuffer() {
-  memset(buffer, 0, MAX_LEN); // Clears buffer
-  len = 0;
-}
 
 void setup() {
   // Begin serial monitoring (comment out for permanent install)
