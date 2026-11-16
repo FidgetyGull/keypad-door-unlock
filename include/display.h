@@ -9,3 +9,4 @@ extern DIYables_LCD_I2C lcd;
 void initDisplay();
 void printMessage(const String& message);
 void printLockout();
+void clearPIN();

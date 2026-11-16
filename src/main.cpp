@@ -42,6 +42,7 @@ void onPinEntered(const char *entered) {
 
   if (checkPin(entered)) {
     failures = 0;
+    printMessage("Unlocked");
     // BEGIN DOOR UNLOCK FUNCTION
     unlock();
   }
@@ -57,9 +58,11 @@ void onPinEntered(const char *entered) {
 const uint8_t MAX_LEN = 8; // Set max password length
 char buffer[MAX_LEN + 1]; // max password input + terminator
 uint8_t len = 0; // current password length
+
 void clearBuffer() {
   memset(buffer, 0, MAX_LEN); // Clears buffer
   len = 0;
+  clearPIN(); // Reset display PIN entry
 }
 
 // Keypad handling functions with idle timer

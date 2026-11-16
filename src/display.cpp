@@ -24,13 +24,20 @@ void initDisplay() {
     lcd.clear();
     lcd.noCursor();
 
-    lcd.setCursor(0,2);
+    lcd.setCursor(0,0);
     lcd.print("Welcome to 341!");
+    lcd.setCursor(0,1);
+    lcd.print("Enter PIN: ");
+    lcd.setCursor(0,3);
+    lcd.print("Locked");
+
+    lcd.setCursor(0,2); // move cursor to PIN entry and show
+    lcd.cursor();
 }
 
 void printMessage(const String& message) {
     lcd.clear();
-    lcd.setCursor(0,0);
+    lcd.setCursor(0,3);
     lcd.print(message);
 }
 
@@ -39,4 +46,10 @@ void printLockout() {
     lcd.clearRow(2);
     lcd.setCursor(2,0);
     lcd.print("Please wait");
+}
+
+void clearPIN() {
+    lcd.clearRow(2);
+    lcd.setCursor(0,2);
+    lcd.cursor();
 }
