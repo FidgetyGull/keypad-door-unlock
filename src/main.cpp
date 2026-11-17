@@ -52,6 +52,10 @@ void onPinEntered(const char *entered) {
     lockoutUntil = millis() + 30000; 
     failures = 0;
   }
+
+  else {
+    printMessage("Try again");
+  }
 }
 
 // PIN entry setup

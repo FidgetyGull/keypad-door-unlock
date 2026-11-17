@@ -9,7 +9,7 @@ DIYables_LCD_I2C lcd(0x27, 20, 4);
 // LCD DISPLAY LAYOUT (template) for 20x4
 /*   01234567890123456789
     +--------------------+
-    |  Welcome to 341!
+    |Welcome to 341!
     |Enter PIN:
     |********
     |Locked
@@ -39,7 +39,7 @@ void initDisplay() {
 }
 
 void printMessage(const String& message) {
-    lcd.clear();
+    lcd.clearRow(3);
     lcd.setCursor(0,3);
     lcd.print(message);
 }
@@ -48,7 +48,7 @@ void printMessage(const String& message) {
 void printLockout() {
     lcd.clearRow(2);
     lcd.setCursor(2,0);
-    lcd.print("Please wait");
+    lcd.print("Locked Out");
 }
 
 // Called only from clearBuffer() from main.cpp
