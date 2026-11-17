@@ -20,8 +20,8 @@ char keys[ROWS][COLS] = {
 // {'7','8','9'},
 // {'*','0','#'}
 // };
-byte rowPins[ROWS] = {5, 4, 3, 2}; //connect to the row pinouts of the kpd
-byte colPins[COLS] = {8, 7, 6}; //connect to the column pinouts of the kpd
+byte rowPins[ROWS] = {19, 18, 5, 17}; //connect to the row pinouts of the kpd
+byte colPins[COLS] = {16, 4, 2, 15}; //connect to the column pinouts of the kpd
 Keypad kpd = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
 // Door unlock control
@@ -32,25 +32,36 @@ void unlock() {
 
 // Static variables to store number of pin failures
 static int failures = 0;
-static unsigned long lockoutUntil = 0;
+const unsigned long LOCKOUT_DURATION = 30000; // 30 seconds
+static bool lockoutActive = false;
+static unsigned long lockoutStarted = 0;
 
-void onPinEntered(const char *entered) {
-  if (millis() < lockoutUntil) {
+bool checkLockout() {
+  if (lockoutActive && millis() - lockoutStarted >= LOCKOUT_DURATION) {
+    lockoutActive = false;
+    printMessage("Locked");
+  }
+  return lockoutActive;
+}
+
+void onPinEntered(const char *entered, bool overflowed = false) {
+  if (checkLockout()) {
     printLockout();
     return;
   }
 
-  if (checkPin(entered)) {
+  if (!overflowed && checkPin(entered)) {
     failures = 0;
     printMessage("Unlocked");
     // BEGIN DOOR UNLOCK FUNCTION
     unlock();
   }
-  // 3 failues to lockout, change as necessary
+  // 3 failures to lockout, change as necessary
   else if (++failures >= 3) {
-    // 30,000 ms = 30 seconds, change as necessary
-    lockoutUntil = millis() + 30000; 
+    lockoutStarted = millis();
+    lockoutActive = true;
     failures = 0;
+    printLockout();
   }
 
   else {
@@ -59,13 +70,15 @@ void onPinEntered(const char *entered) {
 }
 
 // PIN entry setup
-const uint8_t MAX_LEN = 8; // Set max password length
+const uint8_t MAX_LEN = MAX_PIN_LENGTH;
 char buffer[MAX_LEN + 1]; // max password input + terminator
 uint8_t len = 0; // current password length
+bool pinOverflowed = false; // Stays invalid until cleared or submitted
 
 void clearBuffer() {
-  memset(buffer, 0, MAX_LEN); // Clears buffer
+  memset(buffer, 0, sizeof(buffer)); // Clears buffer
   len = 0;
+  pinOverflowed = false;
   clearPIN(); // Reset display PIN entry
 }
 
@@ -86,21 +99,28 @@ void checkIdle() {
   if (backlightOn && (millis() - lastActivity >= IDLE_TIMEOUT)) {
     lcd.noBacklight();
     backlightOn = false;
+    if (pinOverflowed) printMessage("Locked");
     clearBuffer(); // Clears any entered pin when idle
   }
 }
 
 void handleKey(char key) {
+  if (checkLockout()) return;
+
   Serial.println(key); // Comment out if no serial monitoring necessary
   if (key == '*') {
+    if (pinOverflowed) printMessage("Locked");
     clearBuffer();
   } else if (key == '#') {
     buffer[len] = '\0';
-    onPinEntered(buffer);
+    onPinEntered(buffer, pinOverflowed);
     clearBuffer();
   } else if (len < MAX_LEN) {
     buffer[len++] = key;
     advanceCursor();
+  } else {
+    pinOverflowed = true;
+    printMessage("PIN too long");
   }
 }
 
@@ -114,9 +134,11 @@ void setup() {
 }
 
 void loop() {
+  checkLockout(); // Expire lockout even when no key is pressed
   char key = kpd.getKey(); // Get keypad key continuously
   if (key) {
     bool wasAsleep = !backlightOn;
+    wakeBacklight();
     if (!wasAsleep) {
       handleKey(key);
     }

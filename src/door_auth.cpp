@@ -21,18 +21,36 @@ static bool hashesMatch(const uint8_t *a, const uint8_t *b) {
   return diff == 0;
 }
 
-// setPin is called once plaint-text in setup() to store pin in permanent memory. Remove after setup.
-void setPin(const char *pin) {
+bool isValidPin(const char *pin) {
+  if (pin == nullptr || pin[0] == '\0') return false;
+
+  for (size_t i = 0; pin[i] != '\0'; ++i) {
+    if (i >= MAX_PIN_LENGTH) return false;
+    const char key = pin[i];
+    if (!((key >= '0' && key <= '9') || (key >= 'A' && key <= 'D'))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Call once in setup() to provision the PIN; remove the plaintext afterward.
+bool setPin(const char *pin) {
+  if (!isValidPin(pin)) return false;
+
   uint8_t salt[16], hash[32];
   esp_fill_random(salt, 16);
   hashPin(pin, salt, hash);
-  prefs.begin("door", false);
-  prefs.putBytes("salt", salt, 16);
-  prefs.putBytes("hash", hash, 32);
+  if (!prefs.begin("door", false)) return false;
+  const bool saved = prefs.putBytes("salt", salt, 16) == 16 &&
+                     prefs.putBytes("hash", hash, 32) == 32;
   prefs.end();
+  return saved;
 }
 
 bool checkPin(const char *entered) {
+  if (!isValidPin(entered)) return false;
+
   uint8_t salt[16], stored[32], computed[32];
   prefs.begin("door", true);
   prefs.getBytes("salt", salt, 16);

@@ -42,13 +42,12 @@ void printMessage(const String& message) {
     lcd.clearRow(3);
     lcd.setCursor(0,3);
     lcd.print(message);
+    lcd.setCursor(cursor, 2); // Status changes must not move PIN entry
 }
 
-// Print locked out message. TODO: Maybe change message?
+// Keep lockout feedback on the status row.
 void printLockout() {
-    lcd.clearRow(2);
-    lcd.setCursor(2,0);
-    lcd.print("Locked Out");
+    printMessage("Locked Out");
 }
 
 // Called only from clearBuffer() from main.cpp
@@ -62,5 +61,5 @@ void clearPIN() {
 void advanceCursor() {
     ++cursor;
     lcd.write('*');
-    lcd.setCursor(0,cursor);
+    lcd.setCursor(cursor, 2);
 }
