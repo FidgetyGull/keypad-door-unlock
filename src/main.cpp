@@ -96,6 +96,7 @@ void handleKey(char key) {
     clearBuffer();
   } else if (len < MAX_LEN) {
     buffer[len++] = key;
+    advanceCursor();
   }
 }
 

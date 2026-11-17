@@ -18,6 +18,9 @@ DIYables_LCD_I2C lcd(0x27, 20, 4);
 
 // lcd.setCursor(col, row); indexes start at 0
 
+// Track current PIN cursor location
+static uint8_t cursor = 0;
+
 void initDisplay() {
     lcd.init();
     lcd.backlight();
@@ -48,8 +51,16 @@ void printLockout() {
     lcd.print("Please wait");
 }
 
+// Called only from clearBuffer() from main.cpp
 void clearPIN() {
     lcd.clearRow(2);
     lcd.setCursor(0,2);
     lcd.cursor();
+    cursor = 0;
+}
+
+void advanceCursor() {
+    ++cursor;
+    lcd.write('*');
+    lcd.setCursor(0,cursor);
 }

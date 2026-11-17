@@ -10,3 +10,4 @@ void initDisplay();
 void printMessage(const String& message);
 void printLockout();
 void clearPIN();
+void advanceCursor();
