@@ -1,8 +1,6 @@
 #include <Arduino.h>
-#include <Preferences.h>
 #include <Keypad.h>
 #include <DIYables_LCD_I2C.h>
-#include "door_auth.h"
 #include "display.h"
 
 // Keypad module and initial setup
@@ -39,18 +37,20 @@ static unsigned long lockoutStarted = 0;
 bool checkLockout() {
   if (lockoutActive && millis() - lockoutStarted >= LOCKOUT_DURATION) {
     lockoutActive = false;
-    printMessage("Locked");
+    resetDisplaySession();
   }
   return lockoutActive;
 }
 
-void onPinEntered(const char *entered, bool overflowed = false) {
-  if (checkLockout()) {
-    printLockout();
+void handleKey(char key) {
+  if (checkLockout()) return;
+  const KeyResult result = handleDisplayKey(key);
+  if (result == KeyResult::None) return;
+  if (result == KeyResult::AdminAuthenticated) {
+    failures = 0;
     return;
   }
-
-  if (!overflowed && checkPin(entered)) {
+  if (result == KeyResult::DoorGranted) {
     failures = 0;
     printMessage("Access Granted");
     // BEGIN DOOR UNLOCK FUNCTION
@@ -61,25 +61,13 @@ void onPinEntered(const char *entered, bool overflowed = false) {
     lockoutStarted = millis();
     lockoutActive = true;
     failures = 0;
+    resetDisplaySession();
     printLockout();
   }
 
   else {
     printMessage("Try again");
   }
-}
-
-// PIN entry setup
-const uint8_t MAX_LEN = MAX_PIN_LENGTH;
-char buffer[MAX_LEN + 1]; // max password input + terminator
-uint8_t len = 0; // current password length
-bool pinOverflowed = false; // Stays invalid until cleared or submitted
-
-void clearBuffer() {
-  memset(buffer, 0, sizeof(buffer)); // Clears buffer
-  len = 0;
-  pinOverflowed = false;
-  clearPIN(); // Reset display PIN entry
 }
 
 // Keypad handling functions with idle timer
@@ -99,38 +87,14 @@ void checkIdle() {
   if (backlightOn && (millis() - lastActivity >= IDLE_TIMEOUT)) {
     lcd.noBacklight();
     backlightOn = false;
-    if (pinOverflowed) printMessage("Locked");
-    clearBuffer(); // Clears any entered pin when idle
+    resetDisplaySession(); // Clear PINs and end any admin session.
+    if (lockoutActive) printLockout();
   }
 }
-
-void handleKey(char key) {
-  if (checkLockout()) return;
-
-  Serial.println(key); // Comment out if no serial monitoring necessary
-  if (key == '*') {
-    if (pinOverflowed) printMessage("Locked");
-    clearBuffer();
-  } else if (key == '#') {
-    buffer[len] = '\0';
-    onPinEntered(buffer, pinOverflowed);
-    clearBuffer();
-  } else if (len < MAX_LEN) {
-    buffer[len++] = key;
-    advanceCursor();
-  } else {
-    pinOverflowed = true;
-    printMessage("PIN too long");
-  }
-}
-
 
 void setup() {
-  // Begin serial monitoring (comment out for permanent install)
-  Serial.begin(9600);
-  // setPin("1234");  // run once, flash, then remove
-
   initDisplay();
+  lastActivity = millis();
 }
 
 void loop() {
