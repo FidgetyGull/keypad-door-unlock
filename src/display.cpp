@@ -28,7 +28,7 @@ void initDisplay() {
     lcd.noCursor();
 
     lcd.setCursor(0,0);
-    lcd.print("Welcome to 341!");
+    lcd.print("Welcome to 341!"); // Top message
     lcd.setCursor(0,1);
     lcd.print("Enter PIN: ");
     lcd.setCursor(0,3);

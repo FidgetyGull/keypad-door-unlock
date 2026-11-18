@@ -52,7 +52,7 @@ void onPinEntered(const char *entered, bool overflowed = false) {
 
   if (!overflowed && checkPin(entered)) {
     failures = 0;
-    printMessage("Unlocked");
+    printMessage("Access Granted");
     // BEGIN DOOR UNLOCK FUNCTION
     unlock();
   }
